@@ -1,0 +1,8 @@
+﻿aiofiles
+aiogram
+aiogram-media-group
+aiohttp
+aioschedule
+aiosignal
+async-timeout
+asyncpg
