@@ -15,6 +15,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram import F
+from aiogram.methods.send_chat_action import SendChatAction
 from aiogram.utils.formatting import (
     Bold, as_list, as_marked_section, as_key_value, HashTag
 )
@@ -37,16 +38,14 @@ async def cmd_start(message: types.Message):
 
 @dp.message(F.text.contains(' ?'))
 async def cmd_test2(message: types.Message):
+    await bot.send_chat_action(message.chat.id, 'typing')
     msg = message.text.split()
     if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
         req = services.RequestToApi()
         res = await req.request_to_api(url_get_dataAPI, msg[0])
     else:
         res = 'dsaasdasdsad'
-    res_json = json.loads(res)
-    logger.debug(res_json)
-    logger.debug(type(res_json))
-    logger.debug(type(res))
+
     logger.debug(res)
     await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
