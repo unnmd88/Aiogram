@@ -31,13 +31,14 @@ class RequestToApi:
         }
 
         data = {
-            "data": {f"{num_or_ip}": {"host_id": ""}, "req_from_telegramm": True, "search_in_db": True}
+            "hosts": {f"{num_or_ip}": {"host_id": ""}}, "req_from_telegramm": True, "search_in_db": True
         }
 
         logger.debug(data)
-        timeout = aiohttp.ClientTimeout(timeout)
+        # timeout = aiohttp.ClientTimeout(timeout)
 
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, data=json.dumps(data)) as s:
                 res = await s.text()
                 return res
+# {'hosts': {'1': {'host_id': ''}, 'req_from_telegramm': True, 'search_in_db': True}}

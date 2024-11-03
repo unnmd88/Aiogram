@@ -39,6 +39,7 @@ async def cmd_start(message: types.Message):
 @dp.message(F.text.contains(' ?'))
 async def cmd_test2(message: types.Message):
     await bot.send_chat_action(message.chat.id, 'typing')
+    logger.debug(url_get_dataAPI)
     msg = message.text.split()
     if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
         req = services.RequestToApi()
