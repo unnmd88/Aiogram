@@ -31,7 +31,8 @@ class RequestToApi:
         }
 
         data = {
-            "hosts": {f"{num_or_ip}": {"host_id": ""}}, "req_from_telegramm": True, "search_in_db": True
+            "hosts": {f"{num_or_ip}": {"host_id": ""}}, "req_from_telegramm": True, "search_in_db": True,
+            'type_request': 'get'
         }
 
         logger.debug(data)
