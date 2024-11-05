@@ -41,11 +41,13 @@ async def cmd_test2(message: types.Message):
     await bot.send_chat_action(message.chat.id, 'typing')
     logger.debug(url_get_dataAPI)
     msg = message.text.split()
-    if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
-        req = services.RequestToApi()
-        res = await req.request_to_api(url_get_dataAPI, msg[0])
-    else:
-        res = 'dsaasdasdsad'
+    req = services.RequestToApi()
+    res = await req.request_to_api(url_get_dataAPI, msg[0])
+    # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
+    #     req = services.RequestToApi()
+    #     res = await req.request_to_api(url_get_dataAPI, msg[0])
+    # else:
+    #     res = 'dsaasdasdsad'
 
     logger.debug(res)
     await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
