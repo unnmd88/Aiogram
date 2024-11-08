@@ -52,7 +52,27 @@ async def cmd_test2(message: types.Message):
     logger.debug(res)
     await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
-    # await bot.send_message('-1002412371192', f'```\n{res}\n```', parse_mode='MarkdownV2')
+@dp.message(F.text.contains('к'))
+async def cmd_test3(message: types.Message):
+    await bot.send_chat_action(message.chat.id, 'typing')
+    logger.debug(url_get_dataAPI)
+    msg = message.text.split()
+    req = services.GetConfig()
+    res = await req.request_get_config(
+    'http://127.0.0.1:8000/api/v1/download-config/', msg[0])
+    # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
+    #     req = services.RequestToApi()
+    #     res = await req.request_to_api(url_get_dataAPI, msg[0])
+    # else:
+    #     res = 'dsaasdasdsad'
+
+    logger.debug(res)
+    # doc = open('requirements.txt', 'rb')
+    # await message.reply_document('requirements.txt')
+    await message.answer(f'```\nffff\n```', parse_mode='MarkdownV2')
+    # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
+    # await bot.send_message('-1002412371192', f'```\n{res}\
+    # n```', parse_mode='MarkdownV2')
 
 
 # dp.message.register(cmd_test2, F.text)
