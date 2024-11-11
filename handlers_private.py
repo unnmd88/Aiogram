@@ -43,7 +43,7 @@ async def message_handler(message: Message):
 async def cmd_test2(message: types.Message):
 
     msg = message.text.split()
-    if not (3 > len(msg) > 1):
+    if not (4 > len(msg) > 1):
         return await asyncio.sleep(0.1)
     formatter = formatters.TextFormatter()
     resp_format = formatter.define_resonse_format(msg[-1])
