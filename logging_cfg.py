@@ -15,6 +15,12 @@ LOGGING_CONFIG = {
             "filename": curr_path + r"/logs/log",
             "formatter": "verbose",
         },
+        "file2": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": curr_path + r"/logs/log_msg",
+            "formatter": "verbose2",
+        },
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
@@ -27,11 +33,20 @@ LOGGING_CONFIG = {
             "handlers": ["console", 'file'],
             "propagate": True,
         },
+        "msg_writer": {
+            "level": "INFO",
+            "handlers": ['file2'],
+            "propagate": True,
+        }
     },
     "formatters": {
         "verbose": {
             # "format": "{name} {levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "format": "{name} {levelname} {asctime} {module} {lineno} {funcName} {message} ",
+            "style": "{",
+        },
+        "verbose2": {
+            "format": "{levelname} {asctime} {message}",
             "style": "{",
         },
         "simple": {
@@ -40,8 +55,6 @@ LOGGING_CONFIG = {
         },
     },
 }
-
-
 
 if __name__ == '__main__':
     print(curr_path)

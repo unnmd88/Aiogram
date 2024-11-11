@@ -6,6 +6,10 @@ import os
 import aiohttp
 import ipaddress
 
+from aiogram.utils.formatting import (
+    Bold, as_list, as_marked_section, as_key_value, HashTag
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,6 +24,14 @@ def check_valid_ipaddr(ip_addr: str) -> tuple:
         logger.warning(err)
     finally:
         return res
+
+class Common:
+
+    @staticmethod
+    def define_resonse_format(flag):
+
+        return 'json' if flag in {'-j', '-json', 'j', '-j'} else 'text'
+
 
 
 class RequestToApi:
@@ -58,28 +70,75 @@ class RequestToApi:
         request_entity = ['get_config']
         return await self.request_to_api(chat_id, url, num_or_ip, request_entity,  type_request='get_config', timeout=60)
 
-# class GetConfig:
-#     async def request_get_config(self, url, num_or_ip, timeout=30):
-#         headers = {
-#             'User-Agent': os.getenv('user_agent'),
-#             'Authorization': f'Token {os.getenv("TOKEN_API")}',
-#             "content-type": "application/json"
-#         }
-#
-#         hosts = {
-#             f'{num_ip}': {"host_id": ""} for num_ip in num_or_ip
-#         }
-#
-#         data = {
-#             "hosts": hosts, "type_request": "get_config", "search_in_db": True,
-#             'chat_id': '394805475'
-#         }
-#         timeout = aiohttp.ClientTimeout(timeout)
-#         async with aiohttp.ClientSession(timeout=timeout) as session:
-#             async with session.post(url, headers=headers, data=json.dumps(data)) as s:
-#                 print(s)
-#                 res = await s.text()
-#                 logger.debug(res)
-#                 return res
+class GetControllerState(RequestToApi):
 
-# {'hosts': {'1': {'host_id': ''}, 'req_from_telegramm': True, 'search_in_db': True}}
+
+    def responce_parser(self, data_hosts):
+        #
+        # ms = [
+        #     as_marked_section(
+        #         Bold(f'ip: {ipAddr}'),
+        #         as_key_value('Номер СО', data_host.get('host_id')),
+        #         as_key_value('Протокол', data_host.get('protocol')),
+        #         as_key_value('Время запроса', data_host.get('request_time')),
+        #         as_key_value('Время запроса', data_host.get('request_time')),
+        #         marker=" ",
+        #
+        #     ) for ipAddr, data_host in json.loads(data_hosts).items()
+        # ]
+
+        ms2 = []
+        for ipAddr, data_host in json.loads(data_hosts).items():
+
+            body = [
+                as_key_value(k, v) for k, v in data_host.items() if 'responce_entity' not in k
+            ]
+
+            basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+
+            raw_data = [
+                as_key_value(k, v) for k, v in basic.items() if k != 'stream_info'
+            ]
+            res = body + raw_data
+
+            if data_host.get('type_controller') and data_host.get('type_controller') == 'Peek':
+                stream_info = [as_key_value(k, v) for k, v in basic.get('stream_info').items()]
+                # stream_info = []
+
+                res += stream_info
+            #
+
+            #
+            # curr_ms = as_marked_section(
+            #     Bold(f'ip: {ipAddr}'),
+            #     as_key_value('Номер СО', data_host.get('host_id')),
+            #     as_key_value('Тип контроллера', data_host.get('type_controller')),
+            #     as_key_value('Протокол запроса', data_host.get('protocol')),
+            #     as_key_value('Время запроса', data_host.get('request_time')),
+            #     as_key_value('Адресс', data_host.get('address')),
+            #     Bold('-' * 20),
+            #     as_key_value('Режим', basic.get('current_mode')),
+            #     as_key_value('Фаза', basic.get('current_stage')),
+            #     as_key_value('План', basic.get('current_plan')),
+            #     # if basic.get('current_state_buttons') is not None:
+            #     as_key_value('Сигналы', basic.get('current_state_buttons') or 'Неизвестно'),
+            #     marker=" ",
+            # )
+            c_ms = as_marked_section(
+                Bold(f'ip: {ipAddr}'),
+                *res,
+            )
+            ms2.append(c_ms)
+
+        print(ms2)
+        return ms2
+
+
+
+
+
+    async def get_controller_state(self, chat_id, num_or_ip, ):
+        url = os.getenv('URL_ManageControllerAPI')
+        request_entity = ['get_state']
+        return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_state', timeout=5)
+

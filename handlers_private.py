@@ -12,9 +12,10 @@ from aiogram.types import Message
 
 from aiogram.filters import Command
 
-import services
+import services, formatters
 
 logger = logging.getLogger(__name__)
+
 
 load_dotenv()
 
@@ -42,17 +43,25 @@ async def message_handler(message: Message):
 async def cmd_test2(message: types.Message):
 
     msg = message.text.split()
+    if not (3 > len(msg) > 1):
+        return await asyncio.sleep(0.1)
+    formatter = formatters.TextFormatter()
+    resp_format = formatter.define_resonse_format(msg[-1])
     chat_id = message.chat.id
-    req = services.RequestToApi()
+    req = services.GetControllerState()
+
     res = await req.get_controller_state(chat_id, msg[:-1])
-    # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
-    #     req = services.RequestToApi()
-    #     res = await req.request_to_api(url_get_dataAPI, msg[0])
-    # else:
-    #     res = 'dsaasdasdsad'
+
+    # formatter.current_state_formatter(res, resp_format)
 
     logger.debug(res)
-    await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
+    content, p_mode = formatter.current_state_formatter(req.responce_parser(res), flags)
+    if not p_mode:
+        await message.answer(**content.as_kwargs())
+    else:
+        await message.answer(content, parse_mode=p_mode)
+    # await message.answer(content, parse_mode=p_mode)
+    # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
 
 # @private_router.message(F.text.contains(' ?'))
@@ -73,7 +82,7 @@ async def cmd_test2(message: types.Message):
 
 
 @private_router.message(F.text.contains('к'))
-@flags.chat_action(ChatAction.TYPING)
+@flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
 async def cmd_test3(message: types.Message):
     # logger.debug(URL_ManageControllerAPI)
     msg = message.text.split()

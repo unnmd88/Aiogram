@@ -11,6 +11,10 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
+from aiogram import BaseMiddleware
+from aiogram.types import Message
+
+from typing import Callable, Dict, Awaitable, Any
 from aiogram import F
 from aiogram.methods.send_chat_action import SendChatAction
 from aiogram.utils.formatting import (
@@ -19,19 +23,40 @@ from aiogram.utils.formatting import (
 
 import handlers_private
 import logging_cfg
-import services
+import middlewares
 
 logging.config.dictConfig(logging_cfg.LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
+logger_msg_writer = logging.getLogger('msg_writer')
 
 load_dotenv()
 
 bot = Bot(token=os.getenv('SDP_BOT'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+admin1 = os.getenv('admin1')
 
+
+class MessageLogMiddleware(BaseMiddleware):
+
+    async def __call__(
+            self,
+            handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+            event: Message,
+            data: Dict[str, Any]
+    ) -> Any:
+        await bot.forward_message(admin1, event.chat.id, event.message_id)
+        logger_msg_writer.info(f'< chat_id: {event.chat.id} > '
+                               f'< chat.first_name: {event.chat.first_name} > '
+                               f'< chat.first_name: {event.chat.last_name} > \n'
+                               f'< message: {event.text} > ')
+
+        return await handler(event, data)  # Возвращаем обновление хендлерам
 
 
 dp = Dispatcher()
+dp.message.outer_middleware(MessageLogMiddleware())
 dp.include_router(handlers_private.private_router)
+
+
 
 @dp.message(Command("test1"))
 async def cmd_start(message: types.Message):
