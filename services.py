@@ -3,14 +3,16 @@ import logging
 import asyncio
 import os
 
+
 import aiohttp
 import ipaddress
 
-from aiogram.utils.formatting import (
-    Bold, as_list, as_marked_section, as_key_value, HashTag, Italic, Underline
-)
+import my_formatters
+from constants import KeysAndFlags
 
 logger = logging.getLogger(__name__)
+
+
 
 
 def check_valid_ipaddr(ip_addr: str) -> tuple:
@@ -33,64 +35,31 @@ class Common:
         return 'json' if flag in {'-j', '-json', 'j', '-j'} else 'text'
 
 
-class Peek:
+class Checker:
 
-    def parse_get_state(self, ipAddr, data_host):
-        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
-        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
-        stream_info = basic.get('stream_info')
-        if stream_info is None:
-            raise ValueError
+    def user_data_for_get_state_isValid(self, data: list) -> bool:
 
-        logger.debug(data_host)
-        logger.debug(stream_info)
-        streams = []
-        for xp, data in stream_info.items():
-            logger.debug(xp)
-            logger.debug(data)
-            xp_ = as_list(
-                as_marked_section(
-                    Bold(f'Поток {xp}:'),
-                    as_key_value(' current_mode', data.get('current_mode')),
-                    as_key_value(' current_stage', data.get('current_stage')),
-                    as_key_value(' current_state', data.get('current_state')),
-                    marker=''
-                ),
-            )
-            streams.append(xp_)
 
-        streams = as_list(
-            *streams,
-            sep=f'\n{50 * "-"}\n'
-        )
+        if data[-1] != KeysAndFlags.FLAG_GET_STATE.value and data[-1] not in KeysAndFlags.JSON.value:
+            return False
 
-        basic_ = as_list(
-            as_list(
-                as_marked_section(
-                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
-                    as_key_value('План', basic.get('current_plan')),
-                    as_key_value('Параметр плана', basic.get('current_parameter_plan')),
-                    as_key_value('Ошибки', basic.get('current_errors')),
-                    as_key_value('Количество потоков', basic.get('streams')),
-                    as_key_value('Время ДК', basic.get('current_time')),
-                    marker=" ",
-                ),
-                as_marked_section(
-                    Italic(Underline(Bold('\n--stream info--'))),
-                    as_list(streams),
-                    marker=''
-                ),
-                as_marked_section(
-                    as_key_value('\nТип ДК', data_host.get('type_controller')),
-                    as_key_value('Адрес ДК', data_host.get('address')),
-                    as_key_value('Протокол получения данных', data_host.get('protocol')),
-                    as_key_value('Время запроса', data_host.get('request_time')),
-                ),
-                HashTag(f"Режим"),
-            ),
-            sep='\n\n',
-        )
-        return basic_
+        if data[-1] == KeysAndFlags.FLAG_GET_STATE.value:
+            min_len, max_len = 1, 10
+        elif data[-1] in KeysAndFlags.JSON.value:
+            min_len, max_len = 2, 11
+        else:
+            return False
+
+        if not (max_len > len(data) > min_len):
+            return False
+
+        return True
+
+
+
+
+
+
 
 
 class RequestToApi:
@@ -214,52 +183,9 @@ class GetControllerState(RequestToApi):
 
             type_controller = data_host.get('type_controller')
             if type_controller == 'Peek':
-                obj = Peek()
+                obj = my_formatters.Peek()
                 ms2.append(obj.parse_get_state(ipAddr, data_host))
         return ms2
-
-            # body = [
-            #     as_key_value(k, v) for k, v in data_host.items() if 'responce_entity' not in k
-            # ]
-            #
-            # basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
-            #
-            # raw_data = [
-            #     as_key_value(k, v) for k, v in basic.items() if k != 'stream_info'
-            # ]
-            # res = body + raw_data
-            #
-            # if data_host.get('type_controller') and data_host.get('type_controller') == 'Peek':
-            #     stream_info = [as_key_value(k, v) for k, v in basic.get('stream_info').items()]
-            #     # stream_info = []
-            #
-            #     res += stream_info
-            #
-
-            #
-            # curr_ms = as_marked_section(
-            #     Bold(f'ip: {ipAddr}'),
-            #     as_key_value('Номер СО', data_host.get('host_id')),
-            #     as_key_value('Тип контроллера', data_host.get('type_controller')),
-            #     as_key_value('Протокол запроса', data_host.get('protocol')),
-            #     as_key_value('Время запроса', data_host.get('request_time')),
-            #     as_key_value('Адресс', data_host.get('address')),
-            #     Bold('-' * 20),
-            #     as_key_value('Режим', basic.get('current_mode')),
-            #     as_key_value('Фаза', basic.get('current_stage')),
-            #     as_key_value('План', basic.get('current_plan')),
-            #     # if basic.get('current_state_buttons') is not None:
-            #     as_key_value('Сигналы', basic.get('current_state_buttons') or 'Неизвестно'),
-            #     marker=" ",
-            # )
-        #     c_ms = as_marked_section(
-        #         Bold(f'ip: {ipAddr}'),
-        #         *res,
-        #     )
-        #     ms2.append(c_ms)
-        #
-        # print(ms2)
-        # return ms2
 
     async def get_controller_state(self, chat_id, num_or_ip, ):
         url = os.getenv('URL_ManageControllerAPI')

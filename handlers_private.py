@@ -1,26 +1,22 @@
 import asyncio
 import logging
 import os
-import time
 
+from aiogram import types, F, Router, flags
 from aiogram.enums import ChatAction
+from aiogram.types import Message
 from aiogram.utils.chat_action import ChatActionMiddleware
 from dotenv import load_dotenv
 
-from aiogram import types, F, Router, flags
-from aiogram.types import Message
-
-from aiogram.filters import Command
-
-import services, formatters
+import my_formatters
+import services
+from constants import KeysAndFlags
 
 logger = logging.getLogger(__name__)
-
 
 load_dotenv()
 
 ALLOWED_MEMBERS = {int(chat_id) for chat_id in os.getenv('allowed_members').split()}
-
 
 private_router = Router()
 private_router.message.middleware(ChatActionMiddleware())
@@ -38,30 +34,35 @@ async def message_handler(message: Message):
     await message.answer(f"Твой ID: {message.from_user.id}")
 
 
-@private_router.message((F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(' ?')))
+@private_router.message(
+    (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATE.value}'))
+)
 @flags.chat_action(ChatAction.TYPING)
-async def cmd_test2(message: types.Message):
-
+async def get_controller_state(message: types.Message):
+    checker = services.Checker()
+    responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
-    if not (4 > len(msg) > 1):
+
+    if not checker.user_data_for_get_state_isValid(msg):
         return await asyncio.sleep(0.1)
-    formatter = formatters.TextFormatter()
-    resp_format = formatter.define_resonse_format(msg[-1])
+
+    responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
+
     chat_id = message.chat.id
     req = services.GetControllerState()
 
-    res = await req.get_controller_state(chat_id, msg[:-1])
+    data_request = msg[:-1] if msg[-1] == KeysAndFlags.FLAG_GET_STATE.value else msg[:-2]
+    res = await req.get_controller_state(chat_id, data_request)
 
-    # formatter.current_state_formatter(res, resp_format)
+    # content, p_mode = my_formatters.current_state_formatter(req.responce_parser(res), KeysAndFlags.TEXT.value)
+    # return await message.answer(**content.as_kwargs())
 
-    logger.debug(res)
-    content, p_mode = formatter.current_state_formatter(req.responce_parser(res), flags)
-    if not p_mode:
+    if responce_formatter.responce_format == services.KeysAndFlags.TEXT:
+        content = responce_formatter.text_format_current_state(res)
         await message.answer(**content.as_kwargs())
-    else:
-        await message.answer(content, parse_mode=p_mode)
-    # await message.answer(content, parse_mode=p_mode)
-    # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
+    elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
+        await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
+
 
 
 # @private_router.message(F.text.contains(' ?'))
