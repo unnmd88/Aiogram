@@ -53,12 +53,14 @@ async def get_controller_state(message: types.Message):
 
     data_request = msg[:-1] if msg[-1] == KeysAndFlags.FLAG_GET_STATE.value else msg[:-2]
     res = await req.get_controller_state(chat_id, data_request)
+    logger.debug(res)
 
     # content, p_mode = my_formatters.current_state_formatter(req.responce_parser(res), KeysAndFlags.TEXT.value)
     # return await message.answer(**content.as_kwargs())
 
     if responce_formatter.responce_format == services.KeysAndFlags.TEXT:
-        content = responce_formatter.text_format_current_state(res)
+        content = responce_formatter.text_format_current_state(res, data_request)
+        logger.debug(content)
         await message.answer(**content.as_kwargs())
     elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
         await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
