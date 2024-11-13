@@ -14,4 +14,4 @@ class AvailabelsControllers(Enum):
     PEEK = 'Peek'
     SWARCO = 'Swarco'
     POTOK_S = 'Поток (S)'
-    POTOK_P = 'Поток'
+    POTOK_P = 'Поток (P)'

@@ -11,110 +11,7 @@ from aiogram.utils.formatting import (
 logger = logging.getLogger(__name__)
 
 
-class Peek:
 
-    def parse_get_state(self, ipAddr, data_host) -> Text:
-        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
-        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
-        stream_info = basic.get('stream_info')
-        if stream_info is None:
-            raise ValueError
-
-        logger.debug(data_host)
-        logger.debug(stream_info)
-        streams = []
-        # Формируются данные о Потоках
-        for xp, data in stream_info.items():
-            logger.debug(xp)
-            logger.debug(data)
-            xp_ = as_list(
-                as_marked_section(
-                    Bold(f'Поток {xp}:'),
-                    as_key_value(' current_mode', data.get('current_mode')),
-                    as_key_value(' current_stage', data.get('current_stage')),
-                    as_key_value(' current_state', data.get('current_state')),
-                    marker=''
-                ),
-            )
-            streams.append(xp_)
-
-        streams = as_list(
-            *streams,
-            sep=f'\n{50 * "-"}\n'
-        )
-        # Формируются полные данные об объетке
-        basic_ = as_list(
-            as_list(
-                as_marked_section(
-                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
-                    as_key_value('План', basic.get('current_plan')),
-                    as_key_value('Параметр плана', basic.get('current_parameter_plan')),
-                    as_key_value('Ошибки', basic.get('current_errors')),
-                    as_key_value('Количество потоков', basic.get('streams')),
-                    as_key_value('Время ДК', basic.get('current_time')),
-                    marker=" ",
-                ),
-                as_marked_section(
-                    Italic(Underline(Bold('\n--stream info--'))),
-                    as_list(streams),
-                    marker=''
-                ),
-                as_marked_section(
-                    as_key_value('\nТип ДК', data_host.get('type_controller')),
-                    as_key_value('Адрес ДК', data_host.get('address')),
-                    as_key_value('Протокол получения данных', data_host.get('protocol')),
-                    as_key_value('Время запроса', data_host.get('request_time')),
-                ),
-            ),
-            sep='\n\n',
-        )
-        return basic_
-
-
-class Swarco:
-
-    def parse_get_state(self, ipAddr, data_host) -> Text:
-        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
-        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
-
-        if basic is None:
-            raise ValueError
-
-        logger.debug(data_host)
-        logger.debug(basic)
-        streams = []
-        # Формируются данные о Потоках
-
-        basic_ = as_list(
-            as_list(
-                as_marked_section(
-                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
-                    Italic(Underline(Bold('\n--stream info--'))),
-                    as_list(
-                        *basic.get('web_content'),
-                        sep='\n'
-                    ),
-                    as_marked_section(
-                        as_key_value('\nТип ДК', data_host.get('type_controller')),
-                        as_key_value('Адрес ДК', data_host.get('address')),
-                        as_key_value('Протокол получения данных', data_host.get('protocol')),
-                        as_key_value('Время запроса', data_host.get('request_time')),
-                    ),
-                    marker=" ",
-                ),
-                sep='\n\n',
-            ),
-        )
-
-        return basic_
-
-
-class UndefindTypeController:
-    pass
-
-
-class CommonTypeController:
-    pass
 
 
 class BaseFormatter:
@@ -122,7 +19,7 @@ class BaseFormatter:
     def __init__(self, responce_format: KeysAndFlags = None):
         self.responce_format = responce_format
 
-    def _create_obj(self, type_controller: str) -> Peek | Swarco | UndefindTypeController:
+    def _create_obj(self, type_controller: str):
 
         """
         Создает экземпляр класса типа контроллера(из responce), для которого необходимо сформировать сообщение.
@@ -134,7 +31,9 @@ class BaseFormatter:
 
         matches = {
             AvailabelsControllers.PEEK.value: Peek,
-            AvailabelsControllers.SWARCO.value: Swarco
+            AvailabelsControllers.SWARCO.value: Swarco,
+            AvailabelsControllers.POTOK_S.value: Potok,
+            AvailabelsControllers.POTOK_P.value: Potok
         }
         logger.debug(matches)
         if type_controller not in matches:
@@ -256,3 +155,146 @@ class BaseFormatter:
 #
 #         except Exception as err:
 #             print(err)
+
+
+class Peek(BaseFormatter):
+
+    def parse_get_state(self, ipAddr, data_host) -> Text:
+        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
+        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+        stream_info = basic.get('stream_info')
+        if stream_info is None:
+            raise ValueError
+
+        logger.debug(data_host)
+        logger.debug(stream_info)
+        streams = []
+        # Формируются данные о Потоках
+        for xp, data in stream_info.items():
+            logger.debug(xp)
+            logger.debug(data)
+            xp_ = as_list(
+                as_marked_section(
+                    Bold(f'Поток {xp}:'),
+                    as_key_value(' current_mode', data.get('current_mode')),
+                    as_key_value(' current_stage', data.get('current_stage')),
+                    as_key_value(' current_state', data.get('current_state')),
+                    marker=''
+                ),
+            )
+            streams.append(xp_)
+
+        streams = as_list(
+            *streams,
+            sep=f'\n{50 * "-"}\n'
+        )
+        # Формируются полные данные об объетке
+        basic_ = as_list(
+            as_list(
+                as_marked_section(
+                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
+                    as_key_value('План', basic.get('current_plan')),
+                    as_key_value('Параметр плана', basic.get('current_parameter_plan')),
+                    as_key_value('Ошибки', basic.get('current_errors')),
+                    as_key_value('Количество потоков', basic.get('streams')),
+                    as_key_value('Время ДК', basic.get('current_time')),
+                    marker=" ",
+                ),
+                as_marked_section(
+                    Italic(Underline(Bold('\n--stream info--'))),
+                    as_list(streams),
+                    marker=''
+                ),
+                as_marked_section(
+                    as_key_value('\nТип ДК', data_host.get('type_controller')),
+                    as_key_value('Адрес ДК', data_host.get('address')),
+                    as_key_value('Протокол получения данных', data_host.get('protocol')),
+                    as_key_value('Время запроса', data_host.get('request_time')),
+                ),
+            ),
+            sep='\n\n',
+        )
+        return basic_
+
+
+class Swarco(BaseFormatter):
+
+    def parse_get_state(self, ipAddr, data_host) -> Text:
+        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
+        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+
+        if basic is None:
+            raise ValueError
+
+        logger.debug(data_host)
+        logger.debug(basic)
+
+        basic_ = as_list(
+            as_list(
+                as_marked_section(
+                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
+                    Italic(Underline(Bold('\n--stream info--'))),
+                    as_list(
+                        *basic.get('web_content'),
+                        sep='\n'
+                    ),
+                    as_marked_section(
+                        as_key_value('\nТип ДК', data_host.get('type_controller')),
+                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Протокол получения данных', data_host.get('protocol')),
+                        as_key_value('Время запроса', data_host.get('request_time')),
+                    ),
+                    marker=" ",
+                ),
+                sep='\n\n',
+            ),
+        )
+
+        return basic_
+
+
+class Potok(BaseFormatter):
+
+    def parse_get_state(self, ipAddr, data_host) -> Text:
+        # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
+        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+
+        if basic is None:
+            raise ValueError
+
+        logger.debug(data_host)
+        logger.debug(basic)
+
+        basic_ = as_list(
+            as_list(
+                as_marked_section(
+                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
+                    Italic(Underline(Bold('\n--stream info--'))),
+                    as_marked_section(
+                        as_key_value('Режим', basic.get('current_mode')),
+                        as_key_value('Фаза', basic.get('current_stage')),
+                        as_key_value('План', basic.get('current_plan')),
+                        marker=" ",
+                    ),
+
+                    as_marked_section(
+                        as_key_value('\nТип ДК', data_host.get('type_controller')),
+                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Протокол получения данных', data_host.get('protocol')),
+                        as_key_value('Время запроса', data_host.get('request_time')),
+                    ),
+                    marker=" ",
+                ),
+                sep='\n\n',
+            ),
+        )
+
+        return basic_
+
+
+class UndefindTypeController:
+    pass
+
+
+class CommonTypeController:
+    pass
