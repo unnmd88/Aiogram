@@ -40,15 +40,15 @@ async def main():
             print(csrf)
             data = FormData()
             data.add_field('csrf_token', f'"{csrf}"')
-            data.add_field('login', 'admin')
-            data.add_field('password', 'zBCTRuV7')
+            data.add_field('login', '')
+            data.add_field('password', '')
 
             payload = {
                 # 'csrfmiddlewaretoken': f'"{csrf}"',
                 # 'X-CSRFToken': f'"{csrf}"',
                 'csrf_token': f'"{csrf}"',
-                'login': 'admin',
-                'password': 'zBCTRuV7',
+                'login': '',
+                'password': '',
             }
 
             params = {'X-CSRFToken': f'"{csrf}"'}
