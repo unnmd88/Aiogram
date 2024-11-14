@@ -11,9 +11,6 @@ from aiogram.utils.formatting import (
 logger = logging.getLogger(__name__)
 
 
-
-
-
 class BaseFormatter:
 
     def __init__(self, responce_format: KeysAndFlags = None):
@@ -100,6 +97,25 @@ class BaseFormatter:
         )
         return basic_
 
+    def text_format_upload_config(self, raw_data: str, msg: list):
+
+        content = []
+        for ipAddr, data_host in json.loads(raw_data).items():
+            logger.debug(data_host)
+            if ipAddr == 'detail':
+                content.append(f'{data_host}\n{msg[0]}: Не найден в базе')
+                continue
+            obj = self._create_obj(data_host.get('type_controller'))
+            logger.debug(f'obj: {obj}')
+
+            if data_host.get('request_errors') or isinstance(obj, UndefindTypeController):
+                content.append(self.text_format_current_state_base_data_only(ipAddr, data_host))
+            else:
+                content.append(obj.parse_download_configPTC2(ipAddr, data_host))
+
+        return as_list(*content, HashTag("Конфиг"), sep="\n\n")
+
+
     # def current_state_formatter(self, raw_data: dict | str, resp_format: str):
     #
     #     try:
@@ -127,34 +143,6 @@ class BaseFormatter:
     #
     #     except Exception as err:
     #         print(err)
-
-# def current_state_formatter( raw_data: dict | str, resp_format: str):
-#
-#         try:
-#             if resp_format == KeysAndFlags.JSON:
-#                 return f'```\n{raw_data}\n```', 'MarkdownV2'
-#
-#             # to_dict = json.loads(raw_data)
-#             print(raw_data)
-#             print(type(raw_data))
-#
-#             # ms = [
-#             #     as_marked_section(
-#             #         Bold(f'ip: {k}'),
-#             #         as_key_value('Номер СО', v.get('host_id')),
-#             #         as_key_value('Протокол', v.get('protocol')),
-#             #         marker=" ",
-#             #     ) for k, v in to_dict.items()
-#             # ]
-#
-#             content = as_list(*raw_data, sep="\n\n")
-#
-#             print(content)
-#
-#             return content, False
-#
-#         except Exception as err:
-#             print(err)
 
 
 class Peek(BaseFormatter):
@@ -218,6 +206,74 @@ class Peek(BaseFormatter):
 
 
 class Swarco(BaseFormatter):
+
+    def parse_download_configPTC2(self, ipAddr, data_host) -> Text:
+
+        basic = data_host.get('responce_entity').get('raw_data')
+
+        if basic is None:
+            raise ValueError
+
+        logger.debug(data_host)
+        logger.debug(basic)
+
+        # basic_ = as_list(
+        #     as_list(
+        #         as_marked_section(
+        #             Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
+        #             Italic(Underline(Bold('\n--stream info--'))),
+        #             as_list(
+        #                 *basic.get('web_content'),
+        #                 sep='\n'
+        #             ),
+        #             as_marked_section(
+        #                 as_key_value('\nТип ДК', data_host.get('type_controller')),
+        #                 as_key_value('Адрес ДК', data_host.get('address')),
+        #                 as_key_value('Протокол получения данных', data_host.get('protocol')),
+        #                 as_key_value('Время запроса', data_host.get('request_time')),
+        #             ),
+        #             marker=" ",
+        #         ),
+        #         sep='\n\n',
+        #     ),
+        # )
+
+        basic_ = as_list(
+                as_marked_section(
+                    Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
+                    as_key_value(
+                        'Результат',  'Успешно загружен' if data_host.get('responce_tlg').get('ok') else 'Ошибка загрузки'
+                    ),
+                    as_key_value(
+                        'Имя файла',
+                        (data_host.get("responce_tlg").get("result").get("document").get("file_name") or "-")
+                    ),
+                    as_list(
+                        as_marked_section(
+                            Italic(Underline(Bold('\n--controller info--'))),
+                            as_key_value(
+                                'Имя', f'{basic.get("intersection")} {basic.get("owner")} {basic.get("controller-id")}'
+                            ),
+                            as_key_value('ID-backplane', basic.get('backplane-id')),
+                            as_key_value('Групп', basic.get('groups')),
+                            as_key_value('Дет логик', basic.get('detector-logics')),
+                            as_key_value('КБ', basic.get('control-blocks')),
+                            marker=" ",
+                        ),
+                        sep='\n'
+                    ),
+                    as_marked_section(
+                        as_key_value('\nТип ДК', data_host.get('type_controller')),
+                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Протокол получения данных', data_host.get('protocol')),
+                        as_key_value('Время выполнения запроса', data_host.get('request_execution_time')),
+                    ),
+                    marker=" ",
+                ),
+                sep='\n\n',
+            )
+
+        return basic_
 
     def parse_get_state(self, ipAddr, data_host) -> Text:
         # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')

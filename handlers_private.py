@@ -65,15 +65,50 @@ async def get_controller_state(message: types.Message):
     elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
         await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
+@private_router.message(
+    (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.lower().contains(f' {KeysAndFlags.FLAG_GET_CONFIG.value}'))
+)
+@flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
+async def get_controller_state(message: types.Message):
+
+    logger.debug('-------get_controller_state------------')
+    checker = services.Checker()
+    responce_formatter = my_formatters.BaseFormatter()
+    msg = message.text.split()
+
+    if not checker.user_data_for_get_config_isValid(msg):
+        return await asyncio.sleep(0.1)
+
+    responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
+
+    chat_id = message.chat.id
+    req = services.UploadConfig()
+
+    data_request = msg[:-1] if msg[-1] == KeysAndFlags.FLAG_GET_CONFIG.value else msg[:-2]
+    res = await req.get_config(chat_id, data_request)
+    logger.debug(res)
+
+    if responce_formatter.responce_format == services.KeysAndFlags.TEXT:
+        content = responce_formatter.text_format_upload_config(res, data_request)
+        logger.debug(content)
+        await message.answer(**content.as_kwargs())
+    elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
+        await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
 
-# @private_router.message(F.text.contains(' ?'))
-# @flags.chat_action(ChatAction.TYPING)
-# async def cmd_test2(message: types.Message):
-#     logger.debug(URL_ManageControllerAPI)
+
+
+
+# @private_router.message(F.text.contains('к'))
+# @flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
+# async def cmd_test3(message: types.Message):
+#     # logger.debug(URL_ManageControllerAPI)
 #     msg = message.text.split()
+#     # req = services.GetConfig()
+#     chat_id = message.chat.id
 #     req = services.RequestToApi()
-#     res = await req.request_to_api(URL_ManageControllerAPI, msg[:-1])
+#     res = await req.get_config(chat_id, msg[:-1])
+#
 #     # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
 #     #     req = services.RequestToApi()
 #     #     res = await req.request_to_api(url_get_dataAPI, msg[0])
@@ -81,29 +116,9 @@ async def get_controller_state(message: types.Message):
 #     #     res = 'dsaasdasdsad'
 #
 #     logger.debug(res)
+#     # doc = open('requirements.txt', 'rb')
+#     # await message.reply_document('requirements.txt')
 #     await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-
-
-@private_router.message(F.text.contains('к'))
-@flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
-async def cmd_test3(message: types.Message):
-    # logger.debug(URL_ManageControllerAPI)
-    msg = message.text.split()
-    # req = services.GetConfig()
-    chat_id = message.chat.id
-    req = services.RequestToApi()
-    res = await req.get_config(chat_id, msg[:-1])
-
-    # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
-    #     req = services.RequestToApi()
-    #     res = await req.request_to_api(url_get_dataAPI, msg[0])
-    # else:
-    #     res = 'dsaasdasdsad'
-
-    logger.debug(res)
-    # doc = open('requirements.txt', 'rb')
-    # await message.reply_document('requirements.txt')
-    await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-    # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-    # await bot.send_message('-1002412371192', f'```\n{res}\
-    # n```', parse_mode='MarkdownV2')
+#     # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
+#     # await bot.send_message('-1002412371192', f'```\n{res}\
+#     # n```', parse_mode='MarkdownV2')
