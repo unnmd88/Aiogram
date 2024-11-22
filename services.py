@@ -3,7 +3,6 @@ import logging
 import asyncio
 import os
 
-
 import aiohttp
 import ipaddress
 
@@ -11,8 +10,6 @@ import my_formatters
 from constants import KeysAndFlags
 
 logger = logging.getLogger(__name__)
-
-
 
 
 def check_valid_ipaddr(ip_addr: str) -> tuple:
@@ -37,34 +34,33 @@ class Common:
 
 class Checker:
 
-    def user_data_for_get_state_isValid(self, data: list) -> bool:
-
+    def user_data_for_get_state_is_valid(self, data: list) -> bool:
 
         if data[-1] != KeysAndFlags.FLAG_GET_STATE.value and data[-1] not in KeysAndFlags.JSON.value:
             return False
 
         if data[-1] == KeysAndFlags.FLAG_GET_STATE.value:
-            min_len, max_len = 1, 10
+            min_len, max_len = 1, 20
         elif data[-1] in KeysAndFlags.JSON.value:
-            min_len, max_len = 2, 11
+            min_len, max_len = 2, 20
         else:
             return False
 
-        if not (max_len > len(data) > min_len):
+        if len(data) < min_len or len(data) > max_len:
             return False
 
         return True
 
     def user_data_for_get_config_isValid(self, data: list) -> bool:
 
-
         if data[-1] != KeysAndFlags.FLAG_GET_CONFIG.value and data[-1] not in KeysAndFlags.JSON.value:
             return False
+        print(len(data))
 
         if data[-1] == KeysAndFlags.FLAG_GET_CONFIG.value:
             min_len, max_len = 1, 10
         elif data[-1] in KeysAndFlags.JSON.value:
-            min_len, max_len = 2, 11
+            min_len, max_len = 2, 20
         else:
             return False
 
@@ -72,10 +68,6 @@ class Checker:
             return False
 
         return True
-
-
-
-
 
 
 class RequestToApi:
@@ -120,6 +112,7 @@ class GetControllerState(RequestToApi):
         url = os.getenv('URL_ManageControllerAPI')
         request_entity = ['get_state']
         return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_state', timeout=5)
+
 
 class UploadConfig(RequestToApi):
 
