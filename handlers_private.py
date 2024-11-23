@@ -44,7 +44,6 @@ async def get_controller_state(message: types.Message):
     msg = message.text.split()
 
     if not checker.user_data_for_get_state_is_valid(msg):
-        print('not checker')
         return await asyncio.sleep(0.1)
 
     responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
@@ -78,7 +77,6 @@ async def get_controller_state(message: types.Message):
     msg = message.text.split()
 
     if not checker.user_data_for_get_config_isValid(msg):
-        print('not checker')
         return await asyncio.sleep(0.1)
 
     responce_formatter.responce_format = responce_formatter.define_format_responce(msg)

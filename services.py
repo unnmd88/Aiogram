@@ -55,7 +55,6 @@ class Checker:
 
         if data[-1] != KeysAndFlags.FLAG_GET_CONFIG.value and data[-1] not in KeysAndFlags.JSON.value:
             return False
-        print(len(data))
 
         if data[-1] == KeysAndFlags.FLAG_GET_CONFIG.value:
             min_len, max_len = 1, 10
