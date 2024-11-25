@@ -156,7 +156,6 @@ class Peek(BaseFormatter):
         ]
 
         if curr_states.get(JsonResponceBody.INPUTS.value) is not None:
-            print( 'basic.get(JsonResponceBody.INPUTS.value) is not None:')
             main_marked_section_key_val.append(
                 as_marked_section(Bold('Вводы'),
                                   *curr_states.get(JsonResponceBody.INPUTS.value), marker="   "),
