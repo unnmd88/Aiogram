@@ -45,8 +45,9 @@ class MessageLogMiddleware(BaseMiddleware):
     ) -> Any:
         await bot.forward_message(admin1, event.chat.id, event.message_id)
         logger_msg_writer.info(f'< chat_id: {event.chat.id} > '
+                               f'< chat.username: {event.chat.username} > '
                                f'< chat.first_name: {event.chat.first_name} > '
-                               f'< chat.first_name: {event.chat.last_name} > \n'
+                               f'< chat.last_name: {event.chat.last_name} > \n'
                                f'< message: {event.text} > ')
 
         return await handler(event, data)  # Возвращаем обновление хендлерам

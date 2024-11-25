@@ -84,7 +84,7 @@ class BaseFormatter:
                 Bold(f'Номер СО: {data_host.get("host_id") or "Не определён"}\nip: {ipAddr}'),
                 as_key_value('Ошибки', data_host.get('request_errors')),
                 as_key_value('Тип ДК', data_host.get('type_controller')),
-                as_key_value('Адрес ДК', data_host.get('address')),
+                as_key_value('Адрес ДК', data_host.get(JsonResponceBody.ADDRESS.value)),
                 as_key_value('Протокол получения данных', data_host.get('protocol')),
                 as_key_value('Время запроса', data_host.get('request_time')),
                 marker=" ",
@@ -181,7 +181,7 @@ class Peek(BaseFormatter):
                 ),
                 as_marked_section(
                     as_key_value('\nТип ДК', data_host.get('type_controller')),
-                    as_key_value('Адрес ДК', data_host.get('address')),
+                    as_key_value('Адрес ДК', data_host.get(JsonResponceBody.ADDRESS.value)),
                     as_key_value('Протокол получения данных', data_host.get('protocol')),
                     as_key_value('Время запроса', data_host.get('request_time')),
                 ),
@@ -250,7 +250,7 @@ class Swarco(BaseFormatter):
                     ),
                     as_marked_section(
                         as_key_value('\nТип ДК', data_host.get('type_controller')),
-                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Адрес ДК', data_host.get(JsonResponceBody.ADDRESS.value)),
                         as_key_value('Протокол получения данных', data_host.get('protocol')),
                         as_key_value('Время выполнения запроса', data_host.get('request_execution_time')),
                     ),
@@ -282,7 +282,7 @@ class Swarco(BaseFormatter):
                     ),
                     as_marked_section(
                         as_key_value('\nТип ДК', data_host.get('type_controller')),
-                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Адрес ДК', data_host.get(JsonResponceBody.ADDRESS.value)),
                         as_key_value('Протокол получения данных', data_host.get('protocol')),
                         as_key_value('Время запроса', data_host.get('request_time')),
                     ),
@@ -321,7 +321,7 @@ class Potok(BaseFormatter):
 
                     as_marked_section(
                         as_key_value('\nТип ДК', data_host.get('type_controller')),
-                        as_key_value('Адрес ДК', data_host.get('address')),
+                        as_key_value('Адрес ДК', data_host.get(JsonResponceBody.ADDRESS.value)),
                         as_key_value('Протокол получения данных', data_host.get('protocol')),
                         as_key_value('Время запроса', data_host.get('request_time')),
                     ),
