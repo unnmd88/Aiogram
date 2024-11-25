@@ -99,7 +99,7 @@ async def get_controller_state(message: types.Message):
     (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.lower().contains(f' {KeysAndFlags.FLAG_GET_CONFIG.value}'))
 )
 @flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
-async def get_controller_state(message: types.Message):
+async def get_config(message: types.Message):
 
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
