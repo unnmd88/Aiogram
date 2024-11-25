@@ -4,6 +4,7 @@ import os
 
 from aiogram import types, F, Router, flags
 from aiogram.enums import ChatAction
+from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.utils.chat_action import ChatActionMiddleware
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 import my_formatters
 import services
 from constants import KeysAndFlags
+from text_messages import HELP
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +24,9 @@ private_router = Router()
 private_router.message.middleware(ChatActionMiddleware())
 
 
-# @private_router.message(Command("start"))
-# async def start_handler(msg: Message):
-#     await msg.answer("Привет! Я помогу тебе узнать твой ID, просто отправь мне любое сообщение")
+@private_router.message(Command(commands=["help", 'помощь']))
+async def start_handler(msg: Message):
+    await msg.answer(**HELP.as_kwargs())
 
 
 @private_router.message((F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains('test')))
@@ -34,10 +36,13 @@ async def message_handler(message: Message):
     await message.answer(f"Твой ID: {message.from_user.id}")
 
 @private_router.message(
-    (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATES.value}'))
+    (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATES.value}')) &
+    (F.text.func(lambda cnt:  cnt.count('?') == 2))
 )
 @flags.chat_action(ChatAction.TYPING)
 async def get_controller_states(message: types.Message):
+
+    print('----------get_controller_states--------------')
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
@@ -69,11 +74,12 @@ async def get_controller_states(message: types.Message):
 )
 @flags.chat_action(ChatAction.TYPING)
 async def get_controller_state(message: types.Message):
+
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
 
-    if not checker.user_data_for_get_config_isValid(msg):
+    if not checker.user_data_for_get_state_is_valid(msg):
         return await asyncio.sleep(0.1)
 
     responce_formatter.responce_format = responce_formatter.define_format_responce(msg)

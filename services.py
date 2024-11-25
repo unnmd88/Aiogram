@@ -37,7 +37,7 @@ class Common:
 
 class Checker:
 
-    def user_data_for_get_state_isValid(self, data: list) -> bool:
+    def user_data_for_get_state_is_valid(self, data: list) -> bool:
 
 
         if data[-1] != KeysAndFlags.FLAG_GET_STATE.value and data[-1] not in KeysAndFlags.JSON.value:
