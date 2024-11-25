@@ -162,7 +162,7 @@ class Peek(BaseFormatter):
             )
         if curr_states.get(JsonResponceBody.USER_PARAMETERS.value) is not None:
             main_marked_section_key_val.append(
-                as_marked_section(Bold('Вводы'),
+                as_marked_section(Bold('Параметры программы'),
                                   *curr_states.get(JsonResponceBody.USER_PARAMETERS.value), marker="   "),
             )
 
