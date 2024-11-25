@@ -140,6 +140,7 @@ class GetControllerStateFull(RequestToApi):
         request_entity = ['get_states']
         return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_states', timeout=5)
 
+
 class UploadConfig(RequestToApi):
 
     async def get_config(self, chat_id, num_or_ip, ):

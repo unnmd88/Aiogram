@@ -33,36 +33,6 @@ async def message_handler(message: Message):
     await asyncio.sleep(4)
     await message.answer(f"Твой ID: {message.from_user.id}")
 
-@private_router.message(
-    (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATES.value}'))
-)
-@flags.chat_action(ChatAction.TYPING)
-async def get_controller_states(message: types.Message):
-    checker = services.Checker()
-    responce_formatter = my_formatters.BaseFormatter()
-    msg = message.text.split()
-
-    if not checker.user_data_for_get_states_is_valid(msg):
-        return await asyncio.sleep(0.1)
-
-    responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
-
-    chat_id = message.chat.id
-    req = services.GetControllerStateFull()
-
-    data_request = msg[:-1] if msg[-1] == KeysAndFlags.FLAG_GET_STATES.value else msg[:-2]
-    res = await req.get_controller_state(chat_id, data_request)
-    logger.debug(res)
-
-    # content, p_mode = my_formatters.current_state_formatter(req.responce_parser(res), KeysAndFlags.TEXT.value)
-    # return await message.answer(**content.as_kwargs())
-
-    if responce_formatter.responce_format == services.KeysAndFlags.TEXT:
-        content = responce_formatter.text_format_current_state(res, data_request)
-        logger.debug(content)
-        await message.answer(**content.as_kwargs())
-    elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
-        await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
 @private_router.message(
     (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATE.value}'))
@@ -74,6 +44,7 @@ async def get_controller_state(message: types.Message):
     msg = message.text.split()
 
     if not checker.user_data_for_get_state_is_valid(msg):
+        print('not checker')
         return await asyncio.sleep(0.1)
 
     responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
@@ -101,11 +72,13 @@ async def get_controller_state(message: types.Message):
 @flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
 async def get_controller_state(message: types.Message):
 
+    logger.debug('-------get_controller_state------------')
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
 
     if not checker.user_data_for_get_config_isValid(msg):
+        print('not checker')
         return await asyncio.sleep(0.1)
 
     responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
