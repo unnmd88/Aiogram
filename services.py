@@ -55,6 +55,21 @@ class Checker:
 
         return True
 
+    def user_data_for_get_states_is_valid(self, data: list) -> bool:
+
+        if data[-1] != KeysAndFlags.FLAG_GET_STATES.value and data[-1] not in KeysAndFlags.JSON.value:
+            return False
+        if data[-1] == KeysAndFlags.FLAG_GET_STATES.value:
+            min_len, max_len = 1, 3
+        elif data[-1] in KeysAndFlags.JSON.value:
+            min_len, max_len = 2, 4
+        else:
+            return False
+        if not (max_len > len(data) > min_len):
+            return False
+
+        return True
+
     def user_data_for_get_config_isValid(self, data: list) -> bool:
 
 
@@ -72,10 +87,6 @@ class Checker:
             return False
 
         return True
-
-
-
-
 
 
 class RequestToApi:
@@ -120,6 +131,14 @@ class GetControllerState(RequestToApi):
         url = os.getenv('URL_ManageControllerAPI')
         request_entity = ['get_state']
         return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_state', timeout=5)
+
+
+class GetControllerStateFull(RequestToApi):
+
+    async def get_controller_state(self, chat_id, num_or_ip, ):
+        url = os.getenv('URL_ManageControllerAPI')
+        request_entity = ['get_states']
+        return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_states', timeout=5)
 
 class UploadConfig(RequestToApi):
 

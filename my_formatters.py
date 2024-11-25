@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Type
 
-from constants import KeysAndFlags, AvailabelsControllers
+from constants import KeysAndFlags, AvailabelsControllers, JsonResponceBody
 
 from aiogram.utils.formatting import (
     Bold, as_list, as_marked_section, as_key_value, HashTag, Italic, Underline, Text
@@ -46,10 +46,6 @@ class BaseFormatter:
         """
 
         return KeysAndFlags.JSON if msg[-1] in KeysAndFlags.JSON.value else KeysAndFlags.TEXT
-        # if msg[-1] in KeysAndFlags.JSON.value:
-        #     return KeysAndFlags.JSON
-        # else:
-        #     return KeysAndFlags.TEXT
 
     def text_format_current_state(self, raw_data: str, msg: list = None) -> Text:
         """
@@ -65,15 +61,15 @@ class BaseFormatter:
             if ipAddr == 'detail':
                 content.append(f'{data_host}\n{msg[0]}: Не найден в базе')
                 continue
-            obj = self._create_obj(data_host.get('type_controller'))
+            obj = self._create_obj(data_host.get(JsonResponceBody.TYPE_CONTROLLER.value))
             logger.debug(f'obj: {obj}')
 
-            if data_host.get('request_errors') or isinstance(obj, UndefindTypeController):
+            if data_host.get(JsonResponceBody.REQ_ERRORS.value) or isinstance(obj, UndefindTypeController):
                 content.append(self.text_format_current_state_base_data_only(ipAddr, data_host))
             else:
                 content.append(obj.parse_get_state(ipAddr, data_host))
 
-        return as_list(*content, HashTag(f"Режим"), sep="\n\n")
+        return as_list(*content, HashTag(f"РежимДК"), sep="\n\n")
 
     def text_format_current_state_base_data_only(self, ipAddr: str, data_host: dict) -> Text:
         """
@@ -116,40 +112,13 @@ class BaseFormatter:
         return as_list(*content, HashTag("Конфиг"), sep="\n\n")
 
 
-    # def current_state_formatter(self, raw_data: dict | str, resp_format: str):
-    #
-    #     try:
-    #         if resp_format == KeysAndFlags.JSON:
-    #             return f'```\n{raw_data}\n```', 'MarkdownV2'
-    #
-    #         # to_dict = json.loads(raw_data)
-    #         print(raw_data)
-    #         print(type(raw_data))
-    #
-    #         # ms = [
-    #         #     as_marked_section(
-    #         #         Bold(f'ip: {k}'),
-    #         #         as_key_value('Номер СО', v.get('host_id')),
-    #         #         as_key_value('Протокол', v.get('protocol')),
-    #         #         marker=" ",
-    #         #     ) for k, v in to_dict.items()
-    #         # ]
-    #
-    #         content = as_list(*raw_data, sep="\n\n")
-    #
-    #         print(content)
-    #
-    #         return content, False
-    #
-    #     except Exception as err:
-    #         print(err)
-
-
 class Peek(BaseFormatter):
 
-    def parse_get_state(self, ipAddr, data_host) -> Text:
+    def parse_get_state(self, ipAddr: str, data_host: dict) -> Text:
         # stream_info = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic').get('stream_info')
-        basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+        # basic = data_host.get('responce_entity').get('raw_data').get('current_states').get('basic')
+        curr_states = data_host.get('responce_entity').get('raw_data').get('current_states')
+        basic = curr_states.get('basic')
         stream_info = basic.get('stream_info')
         if stream_info is None:
             raise ValueError
@@ -177,15 +146,32 @@ class Peek(BaseFormatter):
             sep=f'\n{50 * "-"}\n'
         )
         # Формируются полные данные об объетке
+
+        main_marked_section_key_val = [
+            as_key_value('План', basic.get('current_plan')),
+            as_key_value('Параметр плана', basic.get('current_parameter_plan')),
+            as_key_value('Ошибки', basic.get('current_errors')),
+            as_key_value('Количество потоков', basic.get('streams')),
+            as_key_value('Время ДК', basic.get('current_time'))
+        ]
+
+        if curr_states.get(JsonResponceBody.INPUTS.value) is not None:
+            print( 'basic.get(JsonResponceBody.INPUTS.value) is not None:')
+            main_marked_section_key_val.append(
+                as_marked_section(Bold('Вводы'),
+                                  *curr_states.get(JsonResponceBody.INPUTS.value), marker="   "),
+            )
+        if curr_states.get(JsonResponceBody.USER_PARAMETERS.value) is not None:
+            main_marked_section_key_val.append(
+                as_marked_section(Bold('Вводы'),
+                                  *curr_states.get(JsonResponceBody.USER_PARAMETERS.value), marker="   "),
+            )
+
         basic_ = as_list(
             as_list(
                 as_marked_section(
                     Bold(f'Номер СО: {data_host.get("host_id")}\nip: {ipAddr}'),
-                    as_key_value('План', basic.get('current_plan')),
-                    as_key_value('Параметр плана', basic.get('current_parameter_plan')),
-                    as_key_value('Ошибки', basic.get('current_errors')),
-                    as_key_value('Количество потоков', basic.get('streams')),
-                    as_key_value('Время ДК', basic.get('current_time')),
+                    *main_marked_section_key_val,
                     marker=" ",
                 ),
                 as_marked_section(
