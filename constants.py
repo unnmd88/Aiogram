@@ -54,7 +54,7 @@ class JsonResponceBody(Enum):
 
 class ButtonsMainMenu(Enum):
 
-    FEATURES = 'возможности'
+    FEATURES = 'что умеет бот'
     MONITORING = 'мониторинг'
     MANAGEMENT = 'управление'
     DOWNLOAD_COFIG = 'загрузка конфига'

@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import my_formatters
 import services
 from constants import KeysAndFlags
-from text_messages import help, start_command_text, get_text
+from text_messages import available_options, start_command_text, get_text
 from keyboards.main_keyboard import main_menu, text_on_buttons_main
 
 
@@ -33,7 +33,10 @@ async def start_handler(msg: Message):
 
 @private_router.message((F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.lower().in_(text_on_buttons_main)))
 async def message_handler(msg: Message):
-    await msg.answer(get_text(msg.text))
+    message = get_text(msg.text)
+    if isinstance(message, str):
+        return await msg.answer(message)
+    return await msg.answer(**message.as_kwargs())
 
 
 @private_router.message(
