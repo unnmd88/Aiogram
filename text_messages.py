@@ -1,8 +1,16 @@
+from enum import Enum
+
+
 from aiogram.utils.formatting import (
     Bold, as_list, as_marked_section, as_key_value, HashTag, Italic, Underline, Text
 )
 
-HELP = as_list(
+from keyboards.main_keyboard import text_on_buttons_main
+from constants import ButtonsMainMenu
+
+
+new_line = '\n'
+help = as_list(
     Underline(Bold('Функционал, доступный на данный момент')),
     Italic('1. Получить состояние ДК.'),
     f"Для получения состояния ДК необходимо отправить сообщение боту "
@@ -29,4 +37,28 @@ HELP = as_list(
     f"\nДоступные опции:"
     f"\n * Один запрос для одного ДК"
 )
+
+available_options = (
+    f"Тестовое сообщение возможностей"
+)
+
+start_command_text = (
+    f"Ознакомиться с функционалом можно нажав необходимую кнопку, " 
+    f"либо отправить одно из сообщений: "
+    f"{new_line}"
+    f"{new_line.join([txt.capitalize() for txt in text_on_buttons_main])}"
+)
+
+
+class AvailableTexts(Enum):
+    available_texts = {
+        '/start': start_command_text,
+        ButtonsMainMenu.FEATURES.value: available_options
+    }
+
+
+def get_text(word: str) -> str:
+    return AvailableTexts.available_texts.value.get(word.lower(), '...')
+
+
 

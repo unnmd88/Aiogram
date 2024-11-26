@@ -4,7 +4,7 @@ import os
 
 from aiogram import types, F, Router, flags
 from aiogram.enums import ChatAction
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandStart, and_f
 from aiogram.types import Message
 from aiogram.utils.chat_action import ChatActionMiddleware
 from dotenv import load_dotenv
@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 import my_formatters
 import services
 from constants import KeysAndFlags
-from text_messages import HELP
+from text_messages import help, start_command_text, get_text
+from keyboards.main_keyboard import main_menu, text_on_buttons_main
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,24 +26,22 @@ private_router = Router()
 private_router.message.middleware(ChatActionMiddleware())
 
 
-@private_router.message(Command(commands=["help", 'помощь']))
+@private_router.message(and_f(CommandStart(), F.from_user.id.in_(ALLOWED_MEMBERS)))
 async def start_handler(msg: Message):
-    await msg.answer(**HELP.as_kwargs())
+    await msg.answer(get_text(msg.text), reply_markup=main_menu.as_markup(resize_keyboard=True))
 
 
-@private_router.message((F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains('test')))
-@flags.chat_action(ChatAction.TYPING)
-async def message_handler(message: Message):
-    await asyncio.sleep(4)
-    await message.answer(f"Твой ID: {message.from_user.id}")
+@private_router.message((F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.lower().in_(text_on_buttons_main)))
+async def message_handler(msg: Message):
+    await msg.answer(get_text(msg.text))
+
 
 @private_router.message(
     (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATES.value}')) &
-    (F.text.func(lambda cnt:  cnt.count('?') == 2))
+    (F.text.func(lambda cnt: cnt.count('?') == 2))
 )
 @flags.chat_action(ChatAction.TYPING)
 async def get_controller_states(message: types.Message):
-
     print('----------get_controller_states--------------')
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
@@ -69,12 +69,12 @@ async def get_controller_states(message: types.Message):
     elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
         await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
+
 @private_router.message(
     (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.contains(f' {KeysAndFlags.FLAG_GET_STATE.value}'))
 )
 @flags.chat_action(ChatAction.TYPING)
 async def get_controller_state(message: types.Message):
-
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
@@ -101,12 +101,12 @@ async def get_controller_state(message: types.Message):
     elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
         await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
 
+
 @private_router.message(
     (F.from_user.id.in_(ALLOWED_MEMBERS)) & (F.text.lower().contains(f' {KeysAndFlags.FLAG_GET_CONFIG.value}'))
 )
 @flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
 async def get_config(message: types.Message):
-
     checker = services.Checker()
     responce_formatter = my_formatters.BaseFormatter()
     msg = message.text.split()
@@ -129,31 +129,3 @@ async def get_config(message: types.Message):
         await message.answer(**content.as_kwargs())
     elif responce_formatter.responce_format == services.KeysAndFlags.JSON:
         await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-
-
-
-
-
-# @private_router.message(F.text.contains('к'))
-# @flags.chat_action(ChatAction.UPLOAD_DOCUMENT)
-# async def cmd_test3(message: types.Message):
-#     # logger.debug(URL_ManageControllerAPI)
-#     msg = message.text.split()
-#     # req = services.GetConfig()
-#     chat_id = message.chat.id
-#     req = services.RequestToApi()
-#     res = await req.get_config(chat_id, msg[:-1])
-#
-#     # if msg[0].isdigit() or services.check_valid_ipaddr(msg[0])[0]:
-#     #     req = services.RequestToApi()
-#     #     res = await req.request_to_api(url_get_dataAPI, msg[0])
-#     # else:
-#     #     res = 'dsaasdasdsad'
-#
-#     logger.debug(res)
-#     # doc = open('requirements.txt', 'rb')
-#     # await message.reply_document('requirements.txt')
-#     await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-#     # await message.answer(f'```\n{res}\n```', parse_mode='MarkdownV2')
-#     # await bot.send_message('-1002412371192', f'```\n{res}\
-#     # n```', parse_mode='MarkdownV2')
