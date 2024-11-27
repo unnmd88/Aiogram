@@ -12,6 +12,7 @@ class KeysAndFlags(Enum):
     FLAG_GET_STATES = '??'
     FLAG_GET_CONFIG = 'конфиг'
 
+
 class AvailabelsControllers(Enum):
     PEEK = 'Peek'
     SWARCO = 'Swarco'
@@ -49,3 +50,11 @@ class JsonResponceBody(Enum):
     MODEL_OBJ = 'obj'
     HAS_IN_DB = 'has_in_db'
     TIME_REQ_CONTROLLER = 'request_time'
+
+
+class ButtonsMainMenu(Enum):
+
+    FEATURES = 'что умеет бот'
+    MONITORING = 'мониторинг'
+    MANAGEMENT = 'управление'
+    DOWNLOAD_COFIG = 'загрузка конфига'

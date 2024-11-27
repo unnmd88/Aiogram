@@ -13,8 +13,6 @@ from constants import KeysAndFlags
 logger = logging.getLogger(__name__)
 
 
-
-
 def check_valid_ipaddr(ip_addr: str) -> tuple:
     res = False, 'undefind'
     try:
@@ -37,7 +35,7 @@ class Common:
 
 class Checker:
 
-    def user_data_for_get_state_isValid(self, data: list) -> bool:
+    def user_data_for_get_state_is_valid(self, data: list) -> bool:
 
 
         if data[-1] != KeysAndFlags.FLAG_GET_STATE.value and data[-1] not in KeysAndFlags.JSON.value:
@@ -138,7 +136,8 @@ class GetControllerStateFull(RequestToApi):
     async def get_controller_state(self, chat_id, num_or_ip, ):
         url = os.getenv('URL_ManageControllerAPI')
         request_entity = ['get_states']
-        return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_states', timeout=5)
+        return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_states', timeout=6)
+
 
 
 class UploadConfig(RequestToApi):
