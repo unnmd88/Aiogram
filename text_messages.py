@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from aiogram.utils.formatting import (
@@ -82,3 +82,5 @@ def get_text(word: str) -> Any:
     if not word:
         return '...'
     return AvailableTexts.available_texts.value.get(word.lower(), '...')
+
+
