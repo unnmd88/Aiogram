@@ -89,7 +89,7 @@ class MessageParser:
             EntitySymbols(self.entity)
         except ValueError:
             self.put_error(ErrorMessages.bad_entity)
-        return bool(self._errors)
+        return False if self._errors else True
 
     def put_error(self, msg: str | Exception):
         self._errors.append(str(msg))

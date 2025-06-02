@@ -1,8 +1,10 @@
 from contextlib import nullcontext as does_not_raise
 import pytest
 
-import parsers
-from parsers import get_tokens, Message
+from parsers import (
+    get_tokens,
+    Message, GetStateMessageParser
+)
 
 
 @pytest.mark.parametrize(
@@ -45,11 +47,33 @@ class TestMessage:
             ('? 1251 144,', True),
             ('?1251144,', False),
             ('?,', False),
+            ('?', False),
         ],
     )
     def test_is_valid(self, msg, expected):
         assert Message(msg).is_valid() == expected
 
+    @pytest.mark.parametrize(
+        "msg, expected",
+        [
+            ('? 1251 144', ('?', '1251', '144')),
+            ('? 1 2 5', ('?', '1', '2', '5')),
+        ],
+    )
+    def test_tokens(self, msg, expected):
+        assert Message(msg).tokens == expected
 
+
+@pytest.mark.parametrize(
+    "instance, expected",
+    [
+        (GetStateMessageParser(Message('? 1251 144')), True),
+        (GetStateMessageParser(Message('?1251144,')), False),
+    ],
+)
+class TestMessageParser:
+
+    def test_validate(self, instance: GetStateMessageParser, expected):
+        assert instance.validate() == expected
 
 
