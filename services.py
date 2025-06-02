@@ -101,15 +101,22 @@ class RequestToApi:
         }
 
         data = {
-            "hosts": hosts, "req_from_telegramm": True, "search_in_db": True, 'chat_id': chat_id,
-            'type_request': type_request
-        }
+              "hosts": [
+                "11",
+                "2390"
+              ]
+            }
+
+
+
 
         logger.debug(data)
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, data=json.dumps(data)) as s:
-                res = await s.text()
+                # res = await s.text()
+                res = await s.json()
+                print(f'res: {res}')
                 return res
 
     # async def get_controller_state(self, chat_id, num_or_ip, ):
