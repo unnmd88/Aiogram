@@ -14,14 +14,19 @@ nltk.download('punkt_tab')
 
 def get_tokens(text: str, type_container: Type[Sequence[str]] = tuple) -> Sequence[str]:
     if not isinstance(type_container, list):
-        return type_container(t for t in nltk.word_tokenize(text))
-    return nltk.word_tokenize(text)
+        return type_container(t for t in text.split())
+    return text.split()
 
 
 class Message:
     def __init__(self, message):
         self._message = message
         self._tokens = get_tokens(self._message)
+
+    def __eq__(self, other):
+        if isinstance(other, Message):
+            return self._message == other.message
+        return NotImplemented
 
     def __len__(self):
         return len(self._tokens)
@@ -79,6 +84,8 @@ class MessageParser:
 
     def validate(self) -> bool:
         try:
+            if not self._message.is_valid():
+                raise ValueError
             EntitySymbols(self.entity)
         except ValueError:
             self.put_error(ErrorMessages.bad_entity)
@@ -98,7 +105,7 @@ class GetStateMessageParser(MessageParser):
 
 if __name__ == '__main__':
     print(nltk.word_tokenize(''))
-    parser = GetStateMessageParser(message=Message(''))
+    parser = GetStateMessageParser(message=Message('?1251144'))
     print(parser)
     print(type(parser.message.tokens))
 
