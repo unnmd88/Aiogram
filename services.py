@@ -2,16 +2,20 @@ import json
 import logging
 import asyncio
 import os
-
+import ipaddress
+from collections import deque
+from typing import NamedTuple
 
 import aiohttp
-import ipaddress
+from dotenv import load_dotenv
 
 import my_formatters
 from constants import KeysAndFlags
+from drivers import drivers_storage
+
 
 logger = logging.getLogger(__name__)
-
+load_dotenv()
 
 def check_valid_ipaddr(ip_addr: str) -> tuple:
     res = False, 'undefind'
@@ -87,7 +91,55 @@ class Checker:
         return True
 
 
+class Response:
+    def __init__(self):
+        self._response = None
+        self._errors = deque(maxlen=8)
+
+    def __repr__(self):
+        return (
+            f'{self.__class__.__name__}('
+            f'errors={self._errors} '
+            f'response={self._response}'
+        )
+
+    def load_response(self, data):
+        self._response = data
+
+    def load_error(self, error: str | Exception):
+        self._errors.append(str(error))
+
+    @property
+    def errors(self):
+        return self._errors
+
+    @property
+    def response(self):
+        return self._response
+
+
 class RequestToApi:
+
+    headers = {
+        'User-Agent': os.getenv('user_agent'),
+        'Authorization': f'Token {os.getenv("TOKEN_API")}',
+        "content-type": "application/json"
+    }
+
+    FAPI_BASE_URL = os.getenv('FAPI_BASE_URL')
+    FAPI_ROUTE_GET_STATE = os.getenv('FAPI_ROUTE_GET_STATE')
+    print(f'FAPI_BASE_URL: {FAPI_BASE_URL}')
+    print(f'FAPI_ROUTE_GET_STATE: {FAPI_ROUTE_GET_STATE}')
+
+    def __init__(self):
+        self._response = Response()
+
+    def get_controller_states_url(self):
+        return self.FAPI_BASE_URL + self.FAPI_ROUTE_GET_STATE
+
+    @property
+    def response_result(self) -> Response:
+        return self._response
 
     async def request_to_api(self, chat_id, url, num_or_ip, request_entity, type_request, timeout=60):
         headers = {
@@ -129,6 +181,21 @@ class RequestToApi:
     #     request_entity = ['get_config']
     #     return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_config', timeout=60)
 
+    async def send_request(self, url: str, payload: str):
+        try:
+            async with drivers_storage.aiohttp_client_session.post(url, headers=self.headers, data=payload) as r:
+                response = await r.json()
+                self._response.load_response(response)
+                print(f'response: {response}')
+                print(f'self._response: {self._response}')
+        except asyncio.TimeoutError:
+            self._response.load_error('Ошибка соединения')
+        except (AssertionError, aiohttp.client_exceptions.ClientConnectorCertificateError):
+            logger.critical('Неверный адрес запроса')
+            raise
+        # except aiohttp.client_exceptions.ClientConnectionError():
+        #     self._response.load_error('Превышено время ожидания запроса данных')
+
 
 class GetControllerState(RequestToApi):
 
@@ -144,7 +211,6 @@ class GetControllerStateFull(RequestToApi):
         url = os.getenv('URL_ManageControllerAPI')
         request_entity = ['get_states']
         return await self.request_to_api(chat_id, url, num_or_ip, request_entity, type_request='get_states', timeout=6)
-
 
 
 class UploadConfig(RequestToApi):

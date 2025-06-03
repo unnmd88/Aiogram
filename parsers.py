@@ -94,6 +94,9 @@ class MessageParser:
     def put_error(self, msg: str | Exception):
         self._errors.append(str(msg))
 
+    def is_valid(self) -> bool:
+        return bool(self._errors)
+
 
 class GetStateMessageParser(MessageParser):
 

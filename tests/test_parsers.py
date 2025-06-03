@@ -25,10 +25,6 @@ def good_messages():
         ('? 11 3320 1515', Message('? 11 3320 1515')),
     ]
 
-@pytest.fixture
-def bad_messages():
-    return  ['?11,']
-
 
 class TestMessage:
 
