@@ -14,12 +14,12 @@ import parsers
 import my_formatters
 import services
 from constants import KeysAndFlags
+from my_formatters import ResponseBase, ResponseStates
 from services import RequestToApi
 from text_messages import available_options, start_command_text, get_text
 from keyboards.main_keyboard import main_menu, text_on_buttons_main
 from parsers import (
-    Message,
-    GetStateMessageParser
+   BaseMessage
 )
 
 
@@ -89,17 +89,31 @@ async def get_controller_state(message: types.Message):
     print(f'message: {message}')
     print(f'message: {message.text}')
 
-    processed_message = GetStateMessageParser(Message(message.text))
-    if not processed_message.is_valid():
+    processed_message = BaseMessage(message.text)
+    if not processed_message.is_valid:
         print(f'---')
         await message.answer(f'```\n{parsers.ErrorMessages.bad_entity}\n```', parse_mode='MarkdownV2')
 
-    data = {"hosts": processed_message.get_hosts()}
-
+    data = {"hosts": processed_message.args}
+    print(f'processed_message\n{processed_message}')
     api = RequestToApi()
     await api.send_request(url=api.get_controller_states_url(), payload=json.dumps(data))
     print(f'response_response: {api.response_result}')
-    await message.answer(f'```json \n{api.response_result.response}\n```', parse_mode='MarkdownV2')
+    print(f'api.response_result.response: {api.response_result.response}')
+
+    for k, v in api.response_result.response.items():
+        print(f'v: {v}')
+        print(f'resp_states v: {v["response"]["data"]}')
+        resp_states = ResponseStates(**(v['response']['data']))
+        break
+
+    # resp_base = ResponseBase(**api.response_result.response | {data: resp_states})
+    print(f'resp_states: {resp_states}')
+    print(f'resp_states: {json.dumps(resp_states.model_dump())}')
+    r = '\n'.join(f'{k}\={v}' for k, v in resp_states.model_dump().items())
+    print(f'r: {r}')
+    await message.answer(f'{r}', parse_mode='MarkdownV2')
+    # await message.answer(f'```json \n{api.response_result.response}\n```', parse_mode='MarkdownV2')
 
     # responce_formatter.responce_format = responce_formatter.define_format_responce(msg)
     #

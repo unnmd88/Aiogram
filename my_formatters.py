@@ -2,6 +2,8 @@ import json
 import logging
 from typing import Type
 
+from pydantic import BaseModel, ConfigDict
+
 from constants import KeysAndFlags, AvailabelsControllers, JsonResponceBody
 
 from aiogram.utils.formatting import (
@@ -339,3 +341,24 @@ class UndefindTypeController:
 
 class CommonTypeController:
     pass
+
+
+r = {'protocol': 'snmp', 'ip_address': '10.179.56.105', 'errors': [], 'data': {'protocol': 'ug405', 'operation_mode': '1', 'dark': '0', 'flash': '0', 'current_stage': 2, 'current_plan': '4', 'local_adaptive_status': '0', 'num_detectors': '31', 'has_det_faults': '1', 'is_mode_man': '0', 'curr_status_mode': '3_light', 'current_mode': 'FT'}}
+class ResponseStates(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    protocol: str
+    current_stage: int
+    current_plan: int
+    curr_status_mode: str | None = None
+    num_detectors: int
+    current_mode: str
+
+
+class ResponseBase(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    ipv4: str
+    number: str
+    type_controller: str
+    protocol: str
+    errors: list
+    data: dict
